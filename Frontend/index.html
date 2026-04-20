@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mayank Wakdikar | Cloud Solutions Architect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="hero">
+            <div class="hero-text">
+                <h1>MAYANK WAKDIKAR</h1>
+                <p class="subtitle">Cloud Solutions Architect in Training | <span class="aws-region">ap-south-1</span></p>
+            </div>
+            <div class="visitor-badge">
+                <i class="fas fa-eye"></i> Views: <span id="counter">...</span>
+            </div>
+        </header>
+
+        <div class="content-layout">
+            <main class="main-content">
+                <section class="card">
+                    <h2 class="section-title"><i class="fas fa-user-tie"></i> Executive Profile</h2>
+                    <p>Dedicated Cloud Practitioner skilled in building <b>resilient, serverless AWS solutions.</b> Focused on the <b>Well-Architected Framework, cost-optimization, and security.</b> Eager to support enterprise cloud operations in an entry-level <b>Solutions Associate</b> or <b>Cloud Support</b> role.</p>
+                </section>
+
+                <section class="card">
+                    <h2 class="section-title"><i class="fas fa-project-diagram"></i> Key Projects</h2>
+                    
+                    <div class="project-item">
+                        <div class="project-meta">
+                            <h3>Secure Static Resume Hosting</h3>
+                            <span class="status-tag">Live</span>
+                        </div>
+                        <p>Architected a secure static site using <b>Amazon S3</b> and <b>CloudFront.</b> Leveraged <b>Origin Access Control (OAC)</b> to ensure bucket privacy and enforced <b>HTTPS delivery</b> via a global CDN for optimized performance and security.</p>
+                        <div class="tags">
+                            <span>S3</span> <span>CloudFront</span> <span>OAC</span> <span>IAM</span>
+                        </div>
+                    </div>
+
+                    <div class="project-item">
+                        <div class="project-meta">
+                            <h3>Serverless Visitor Counter</h3>
+                            <span class="status-tag">Active</span>
+                        </div>
+                        <p>Developed a serverless backend using <b>Lambda, API Gateway,</b> and <b>DynamoDB</b> for visitor tracking. Integrated <b>Amazon SES</b> for automated contact form routing, managing <b>CORS policies</b> and <b>Boto3 SDK</b> integrations.</p>
+                        <div class="tags">
+                            <span>Lambda</span> <span>DynamoDB</span> <span>API Gateway</span> <span>Python</span> <span>Amazon SES</span>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <aside class="sidebar">
+                <section class="sidebar-block">
+                    <h3><i class="fas fa-tools"></i> Skills & Domains</h3>
+                    <div class="skill-pill-container">
+                        <span class="pill">AWS Management Console</span>
+                        <span class="pill">Amazon S3</span>
+                        <span class="pill">Amazon Cloudfront</span>
+                        <span class="pill">AWS Lambda</span>
+                        <span class="pill">API Gateway</span>
+                        <span class="pill">DynamoDB</span>
+                        <span class="pill">Amazon SES</span>
+                        <span class="pill">IAM (Policies & Roles)</span>
+                        <span class="pill">Python (Boto3 basics)</span>
+                        <span class="pill">AWS CLI</span>
+                        <span class="pill">Terraform (basics)</span>
+                    </div>
+                </section>
+
+                <section class="sidebar-block">
+                    <h3><i class="fas fa-award"></i> Certifications</h3>
+                    <div class="cert-mini-card">
+                        <i class="fab fa-aws"></i>
+                        <span>AWS Cloud Practitioner (2026)</span>
+                    </div>
+                    <div class="cert-mini-card in-progress">
+                        <i class="fas fa-spinner"></i>
+                        <span>AWS Solutions Architect Assoc.</span>
+                    </div>
+                </section>
+
+                <section class="sidebar-block">
+                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                    <p class="edu-text"><b>B.E. Computer Engineering</b><br>SPPU | 2020 - 2024</p>
+                </section>
+
+                <section class="sidebar-block">
+                    <h3><i class="fas fa-globe"></i> Languages</h3>
+                    <p class="lang-text">English, Marathi, Hindi</p>
+                </section>
+
+                <div class="social-links">
+  			<a href="https://www.linkedin.com/in/mayank-wakdikar/" target="_blank"><i class="fab fa-linkedin"></i></a>
+    			<a href="https://github.com/MayWak" target="_blank"><i class="fab fa-github"></i></a>
+		</div>
+            </aside>
+        </div>
+
+        <section class="card">
+            <h2 class="section-title"><i class="fas fa-paper-plane"></i> Contact Me</h2>
+            <form id="contact-form">
+                <textarea id="form-message" placeholder="Type your message here..." required></textarea>
+                <button type="submit" id="submit-btn">Send Message via SES</button>
+            </form>
+            <p id="form-status"></p>
+        </section>
+    </div>
+
+    <script>
+        const API_URL = "https://07hvhhvp45.execute-api.ap-south-1.amazonaws.com";
+
+        async function updateCounter() {
+            try {
+                const res = await fetch(`${API_URL}/visit`);
+                const data = await res.json();
+                document.getElementById('counter').innerText = data.count;
+            } catch (e) { console.error("Counter Error:", e); }
+        }
+
+        document.getElementById('contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = document.getElementById('form-status');
+            const msg = document.getElementById('form-message').value;
+            status.innerText = "Processing via Lambda...";
+            
+            try {
+                await fetch(`${API_URL}/contact`, {
+                    method: 'POST',
+                    body: JSON.stringify({ message: msg })
+                });
+                status.innerText = "Success! Email sent via SES.";
+                document.getElementById('contact-form').reset();
+            } catch (e) { status.innerText = "Error sending message."; }
+        });
+
+        window.onload = updateCounter;
+    </script>
+</body>
+</html>
