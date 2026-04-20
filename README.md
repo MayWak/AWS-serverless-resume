@@ -7,6 +7,34 @@ This repository contains the infrastructure and code for a serverless portfolio 
 
 ## System Architecture
 
+```mermaid
+graph TD
+    %% User Section
+    User((User/Browser)) 
+
+    %% Frontend Path
+    subgraph "Frontend Layer"
+    CF[Amazon CloudFront]
+    S3[(Amazon S3 Private Bucket)]
+    end
+
+    %% Backend Path
+    subgraph "Backend Layer"
+    APIGW[API Gateway]
+    Lambda[AWS Lambda]
+    DDB[(DynamoDB Table)]
+    SES[Amazon SES]
+    end
+
+    %% Connections
+    User -->|HTTPS| CF
+    CF -->|OAC Secured| S3
+    User -->|JSON/POST| APIGW
+    APIGW --> Lambda
+    Lambda -->|Boto3| DDB
+    Lambda -->|Email| SES
+```
+
 ### Frontend & Global Delivery
 * **Host:** Amazon S3 (Private Bucket).
 * **CDN:** Amazon CloudFront.
