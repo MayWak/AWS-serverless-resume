@@ -8,56 +8,100 @@ This repository contains the infrastructure and code for a serverless portfolio 
 ## System Architecture
 
 ```mermaid
-graph TD
-    %% Node Definitions
-    User((🌐 User / Browser))
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ff9900', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#fff'}}}%%
+graph LR
+    %% --- MAIN TITLE ---
+    %% This acts as a header within the diagram itself
+    Title[<b style='font-size:20px'>AWS Serverless Cloud Resume Architecture</b><br/>Production-Grade, Secure, Cost-Optimized]:::title --> Subtitle:::subtitle
+    Subtitle[Adhering to AWS Well-Architected Framework]:::subtitle
+
+    %% --- NODES & USERS ---
+    User(<i class="fa fa-user fa-2x"></i><br/>End User / Recruiter):::user
+
+    %% --- PHASE I: FRONTEND & EDGE ---
+    subgraph EdgePerimeter [Phase I: Global Edge Perimeter]
+        direction TB
+        CF(🌐 Amazon CloudFront<br/>Global CDN / 600+ PoPs):::network
+        OAC{<i class="fa fa-shield-alt"></i><br/>Origin Access Control<br/>SigV4 Security}:::security
+        S3Bucket(<i class="fa fa-database"></i><br/>Private S3 Bucket<br/>Static Assets: index.html):::storage
+    end
+
+    %% --- PHASE II: BACKEND ---
+    subgraph ComputeLayer [Phase II: Serverless Backend]
+        direction TB
+        APIGW(<i class="fa fa-api"></i><br/>Amazon API Gateway<br/>HTTP API endpoint):::compute
+        CORS{<i class="fa fa-handshake"></i><br/>CORS<br/>Configuration}:::security
+        
+        subgraph LambdaLogic [Python 3.x / Boto3 SDK]
+            direction LR
+            Func1(<i class="fa fa-code"></i><br/>Lambda: Visitor Counter<br/>Atomic Increment):::compute
+            Func2(<i class="fa fa-envelope"></i><br/>Lambda: Contact Handler<br/>JSON Parser):::compute
+        end
+    end
+
+    %% --- PHASE III: DATA ---
+    subgraph DataMessaging [Phase III: Persistence & Messaging]
+        direction TB
+        DDB(<i class="fa fa-table"></i><br/>Amazon DynamoDB<br/>NoSQL / Single-Table):::storage
+        SES(<i class="fa fa-paper-plane"></i><br/>Amazon SES<br/>Simple Email Service):::messaging
+    end
+
+    %% --- OPERATIONAL EXCELLENCE & SECURITY ---
+    subgraph Governance [Operational Excellence & Security]
+        direction BT
+        IAM(<i class="fa fa-key"></i><br/>AWS IAM<br/>Least Privilege Roles):::security
+        CW(<i class="fa fa-eye"></i><br/>Amazon CloudWatch<br/>Logs & Metrics):::observability
+        Budget(<i class="fa fa-chart-line"></i><br/>AWS Budgets<br/>Threshold: $0.01):::governance
+    end
+
+    %% --- DEFINING THE FLOW & INTERACTION ---
     
-    subgraph Edge ["Phase I: Global Edge & Perimeter"]
-        CF["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/NetworkingContentDelivery/CloudFront.png' width='40'/><br/>Amazon CloudFront"]
-        OAC{{"Origin Access Control (OAC)"}}
-        S3[("<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/Storage/SimpleStorageService.png' width='40'/><br/>Private S3 Bucket")]
-    end
+    %% 1. Static Asset Request
+    User -- "1. Requests Website<br/>(HTTPS/TLS)" --> CF
+    CF -- "2. Authenticates Request<br/>(SigV4 via OAC)" --> OAC
+    OAC -- "3. Fetches Assets<br/>(Private Origin)" --> S3Bucket
+    S3Bucket -- "4. Returns index.html" --> CF
+    CF -- "5. Delivers Content<br/>(Low-Latency)" --> User
 
-    subgraph Backend ["Phase II: Serverless Compute"]
-        API["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/ApplicationIntegration/APIGateway.png' width='40'/><br/>API Gateway (HTTP API)"]
-        Lambda["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/Compute/Lambda.png' width='40'/><br/>AWS Lambda (Python)"]
-    end
-
-    subgraph Persistence ["Phase III: Data & Communication"]
-        DDB[("<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/Database/DynamoDB.png' width='40'/><br/>Amazon DynamoDB")]
-        SES["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/BusinessApplications/SimpleEmailService.png' width='40'/><br/>Amazon SES"]
-    end
-
-    subgraph Management ["Operational Excellence"]
-        CW["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/ManagementGovernance/CloudWatch.png' width='40'/><br/>CloudWatch Logs"]
-        Budget["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/ManagementGovernance/Budgets.png' width='40'/><br/>AWS Budgets ($0.01)"]
-        IAM["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/SecurityIdentityCompliance/IAM.png' width='40'/><br/>IAM Roles (Least Privilege)"]
-    end
-
-    %% Connection Logic
-    User -->|1. HTTPS Request| CF
-    CF -->|2. Secure Fetch| OAC
-    OAC -.->|3. Origin Access| S3
-    S3 -.->|4. Static Assets| CF
-    CF -->|5. Render HTML/CSS/JS| User
-
-    User -->|6. JS Fetch API| API
-    API -->|7. Trigger| Lambda
-    Lambda -->|8. Update Counter| DDB
-    Lambda -->|9. Send Contact Email| SES
-
-    %% Operational Links
-    Lambda -.->|Logs| CW
-    API -.->|Logs| CW
-    IAM -.->|Permissions| Lambda
-    Budget -.->|Guardrails| Backend
+    %% 2. Dynamic API Request
+    User -- "6. Executes JS fetch()" --> APIGW
+    APIGW -.-> CORS
+    CORS -- "7. Validates Origin" --> APIGW
     
-    %% Styling
-    style Edge fill:#f9f9f9,stroke:#333,stroke-width:2px
-    style Backend fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    style Persistence fill:#efebe9,stroke:#4e342e,stroke-width:2px
-    style Management fill:#fff3e0,stroke:#e65100,stroke-dasharray: 5 5
-    style OAC fill:#fff,stroke:#d32f2f,stroke-width:2px
+    %% Triggering Logic
+    APIGW -- "8. Triggers<br/>(Event Payload)" --> LambdaLogic
+    
+    %% Lambda Interactions
+    Func1 -- "9. UpdateItem<br/>(Atomic Increment)" --> DDB
+    Func2 -- "10. SendEmail<br/>(Verified Identity)" --> SES
+
+    %% 3. Cross-Cutting Support
+    IAM -. "Enforces<br/>Permissions" .-> LambdaLogic
+    IAM -. "Enforces<br/>Permissions" .-> S3Bucket
+    LambdaLogic -- "Streams Logs" --> CW
+    APIGW -- "Streams Logs" --> CW
+    Governance -. "Monitors<br/>Spend" .-> User
+
+    %% --- COMPONENT STYLING ---
+    classDef title fill:none,stroke:none,color:#232F3E,font-weight:bold;
+    classDef subtitle fill:none,stroke:none,color:#666,font-style:italic;
+    classDef user fill:#fff,stroke:#232F3E,stroke-width:2px,color:#232F3E,rx:10,ry:10;
+    
+    %% AWS Service Colors
+    classDef network fill:#8C4FFF,stroke:#fff,stroke-width:1px,color:#fff,rx:5,ry:5;
+    classDef compute fill:#FF9900,stroke:#fff,stroke-width:1px,color:#fff,rx:5,ry:5;
+    classDef storage fill:#3B48CC,stroke:#fff,stroke-width:1px,color:#fff,rx:5,ry:5;
+    classDef messaging fill:#41B13F,stroke:#fff,stroke-width:1px,color:#fff,rx:5,ry:5;
+    
+    classDef security fill:#E05243,stroke:#fff,stroke-width:1px,color:#fff,rx:15,ry:15;
+    classDef observability fill:#20BCD5,stroke:#fff,stroke-width:1px,color:#fff,rx:5,ry:5;
+    classDef governance fill:#545B64,stroke:#fff,stroke-width:1px,color:#fff,rx:5,ry:5;
+
+    %% Link Styling (Enthusiastic & Sharp)
+    linkStyle default stroke:#545B64,stroke-width:1px,stroke-dasharray: 3 3;
+    linkStyle 0,1,2,3,4 stroke:#8C4FFF,stroke-width:2px,stroke-dasharray: 0;
+    linkStyle 5,6,7,8 stroke:#FF9900,stroke-width:2px,stroke-dasharray: 0;
+    linkStyle 9,10 stroke:#3B48CC,stroke-width:2px,stroke-dasharray: 0;
 ```
 
 ### Frontend & Global Delivery
