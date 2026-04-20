@@ -1,6 +1,6 @@
 # Serverless Portfolio Architecture (AWS)
 
-**Live Link:** dzcey4h6erix0.cloudfront.net
+**Live Link:** [View my Live Resume](https://dzcey4h6erix0.cloudfront.net)
 
 ## Project Overview
 This repository contains the infrastructure and code for a serverless portfolio website. The project transitions a traditional static site into a global, event-driven application with real-time visitor tracking and an integrated contact system.
@@ -15,8 +15,8 @@ This repository contains the infrastructure and code for a serverless portfolio 
 ### Backend Services (Python/Boto3)
 * **API Layer:** Amazon API Gateway (HTTP API). Handles CORS headers to permit cross-domain requests from the CloudFront distribution.
 * **Database:** Amazon DynamoDB. Stores visitor telemetry using an atomic counter to ensure data integrity during concurrent hits.
-* **Compute:** * `visitor_counter.py`: Increments and retrieves site view counts.
-    * `contact_form.py`: Parses JSON payloads and triggers email delivery via Amazon SES.
+* **Compute:** * `visitor-counter-function.py`: Increments and retrieves site view counts.
+    * `contact-form-functio.py`: Parses JSON payloads and triggers email delivery via Amazon SES.
 * **Communication:** Amazon SES (Simple Email Service) configured with verified identity for secure form routing.
 
 ## Security & Operations
