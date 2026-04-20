@@ -1,41 +1,29 @@
-# AWS Serverless Cloud Resume ☁️
-**Live Demo:** [PASTE_YOUR_CLOUDFRONT_URL_HERE]
+# Serverless Portfolio Architecture (AWS)
 
-## 🎯 Project Overview
-This project is a full-stack, serverless web application designed to host a professional resume while demonstrating core architectural principles on AWS. The goal was to build a secure, highly available, and cost-efficient system that handles global content delivery and serverless backend logic.
+**Live Link:** dzcey4h6erix0.cloudfront.net
 
-## 🏗️ Architecture Diagram
-*(I recommend adding a diagram later using tools like Draw.io or Lucidchart)*
+## Project Overview
+This repository contains the infrastructure and code for a serverless portfolio website. The project transitions a traditional static site into a global, event-driven application with real-time visitor tracking and an integrated contact system.
 
-The request flow:
-**User** → **CloudFront (HTTPS)** → **S3 (Private Origin)**
-**User** → **API Gateway** → **Lambda** → **DynamoDB / SES**
+## System Architecture
 
----
+### Frontend & Global Delivery
+* **Host:** Amazon S3 (Private Bucket).
+* **CDN:** Amazon CloudFront.
+* **Origin Security:** Implemented Origin Access Control (OAC). The S3 bucket policy is restricted to CloudFront service principals only, preventing direct S3 URL access and ensuring all traffic is encrypted via HTTPS.
 
-## 🛠️ Technical Breakdown (The SAA Perspective)
+### Backend Services (Python/Boto3)
+* **API Layer:** Amazon API Gateway (HTTP API). Handles CORS headers to permit cross-domain requests from the CloudFront distribution.
+* **Database:** Amazon DynamoDB. Stores visitor telemetry using an atomic counter to ensure data integrity during concurrent hits.
+* **Compute:** * `visitor_counter.py`: Increments and retrieves site view counts.
+    * `contact_form.py`: Parses JSON payloads and triggers email delivery via Amazon SES.
+* **Communication:** Amazon SES (Simple Email Service) configured with verified identity for secure form routing.
 
-### 1. Edge Networking & Security (The Perimeter)
-* **Amazon CloudFront:** Used as a Global Content Delivery Network (CDN) to ensure low-latency access via edge locations.
-* **Origin Access Control (OAC):** Implemented to secure the S3 origin. The S3 bucket is completely private; access is granted strictly to the CloudFront service principal via a tailored **IAM Resource Policy**.
-* **SSL/TLS:** Enforced HTTPS delivery using default CloudFront certificates to ensure data-in-transit security.
+## Security & Operations
+* **IAM Policy:** Followed the principle of least privilege for Lambda execution roles, scoping permissions to specific Resource ARNs (DynamoDB table and SES identity).
+* **Cost Management:** Established AWS Budget alerts at a $0.01 threshold to monitor resource consumption in real-time.
+* **Caching:** Configured manual CloudFront invalidations (/*) to manage content updates across edge locations.
 
-### 2. Serverless Backend (Event-Driven Design)
-* **Amazon API Gateway (HTTP API):** Acts as the entry point for the backend. Configured with **CORS (Cross-Origin Resource Sharing)** policies to allow secure communication between the CloudFront domain and the API.
-* **AWS Lambda (Python/Boto3):**
-    * **Telemetry Function:** Interacts with DynamoDB using atomic increments to track real-time visitor counts without race conditions.
-    * **Communication Function:** Parses user input and routes messages through **Amazon SES**.
-* **Amazon DynamoDB:** A fully managed NoSQL database chosen for its seamless scalability and high performance.
-
-### 3. Operational Excellence & Cost Governance
-* **AWS Budgets:** To demonstrate fiscal responsibility, I implemented a budget alert at the **$0.01 threshold**, ensuring real-time notification of any unexpected cost spikes.
-* **CloudWatch Logs:** Utilized for debugging and monitoring Lambda execution health and API request flows.
-
----
-
-## 🧠 Challenges Overcome
-* **CORS Troubleshooting:** Resolved "Access-Control-Allow-Origin" headers between the frontend and API Gateway to enable smooth cross-domain fetching.
-* **Identity & Access Management:** Crafted least-privilege IAM policies to ensure Lambda functions only have permissions for the specific DynamoDB table and SES identities required.
-
-## 🚀 Skills Demonstrated
-`Solutions Architecture` `IAM Security` `Serverless Computing (FaaS)` `NoSQL Database Design` `CDN & Edge Networking` `Cost Management`
+## Technical Notes & Troubleshooting
+* **CORS Management:** Managed Access-Control-Allow-Origin and Access-Control-Allow-Methods (OPTIONS, POST) within API Gateway to resolve browser-side blocking issues during the integration phase.
+* **Event Parsing:** Configured Lambda handlers to properly decode event['body'] strings sent from the frontend fetch() API.
