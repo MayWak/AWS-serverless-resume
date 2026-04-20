@@ -9,30 +9,55 @@ This repository contains the infrastructure and code for a serverless portfolio 
 
 ```mermaid
 graph TD
-    %% User Section
-    User((User/Browser)) 
-
-    %% Frontend Path
-    subgraph "Frontend Layer"
-    CF[Amazon CloudFront]
-    S3[(Amazon S3 Private Bucket)]
+    %% Node Definitions
+    User((🌐 User / Browser))
+    
+    subgraph Edge ["Phase I: Global Edge & Perimeter"]
+        CF["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/NetworkingContentDelivery/CloudFront.png' width='40'/><br/>Amazon CloudFront"]
+        OAC{{"Origin Access Control (OAC)"}}
+        S3[("<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/Storage/SimpleStorageService.png' width='40'/><br/>Private S3 Bucket")]
     end
 
-    %% Backend Path
-    subgraph "Backend Layer"
-    APIGW[API Gateway]
-    Lambda[AWS Lambda]
-    DDB[(DynamoDB Table)]
-    SES[Amazon SES]
+    subgraph Backend ["Phase II: Serverless Compute"]
+        API["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/ApplicationIntegration/APIGateway.png' width='40'/><br/>API Gateway (HTTP API)"]
+        Lambda["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/Compute/Lambda.png' width='40'/><br/>AWS Lambda (Python)"]
     end
 
-    %% Connections
-    User -->|HTTPS| CF
-    CF -->|OAC Secured| S3
-    User -->|JSON/POST| APIGW
-    APIGW --> Lambda
-    Lambda -->|Boto3| DDB
-    Lambda -->|Email| SES
+    subgraph Persistence ["Phase III: Data & Communication"]
+        DDB[("<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/Database/DynamoDB.png' width='40'/><br/>Amazon DynamoDB")]
+        SES["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/BusinessApplications/SimpleEmailService.png' width='40'/><br/>Amazon SES"]
+    end
+
+    subgraph Management ["Operational Excellence"]
+        CW["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/ManagementGovernance/CloudWatch.png' width='40'/><br/>CloudWatch Logs"]
+        Budget["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/ManagementGovernance/Budgets.png' width='40'/><br/>AWS Budgets ($0.01)"]
+        IAM["<img src='https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist/SecurityIdentityCompliance/IAM.png' width='40'/><br/>IAM Roles (Least Privilege)"]
+    end
+
+    %% Connection Logic
+    User -->|1. HTTPS Request| CF
+    CF -->|2. Secure Fetch| OAC
+    OAC -.->|3. Origin Access| S3
+    S3 -.->|4. Static Assets| CF
+    CF -->|5. Render HTML/CSS/JS| User
+
+    User -->|6. JS Fetch API| API
+    API -->|7. Trigger| Lambda
+    Lambda -->|8. Update Counter| DDB
+    Lambda -->|9. Send Contact Email| SES
+
+    %% Operational Links
+    Lambda -.->|Logs| CW
+    API -.->|Logs| CW
+    IAM -.->|Permissions| Lambda
+    Budget -.->|Guardrails| Backend
+    
+    %% Styling
+    style Edge fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style Backend fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style Persistence fill:#efebe9,stroke:#4e342e,stroke-width:2px
+    style Management fill:#fff3e0,stroke:#e65100,stroke-dasharray: 5 5
+    style OAC fill:#fff,stroke:#d32f2f,stroke-width:2px
 ```
 
 ### Frontend & Global Delivery
