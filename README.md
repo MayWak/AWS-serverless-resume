@@ -9,23 +9,26 @@ This repository contains the infrastructure and code for a serverless portfolio 
 
 <img width="1540" height="1230" alt="System Architectue" src="https://github.com/user-attachments/assets/302a35dc-f106-4d65-963a-fdf12e1a32d3" />
 
+## Architecture & Technical Implementation
+
 ### Frontend & Global Delivery
-* **Host:** Amazon S3 (Private Bucket).
-* **CDN:** Amazon CloudFront.
-* **Origin Security:** Implemented Origin Access Control (OAC). The S3 bucket policy is restricted to CloudFront service principals only, preventing direct S3 URL access and ensuring all traffic is encrypted via HTTPS.
+* **Storage (Amazon S3):** Static assets are hosted in a private bucket with all public access blocked.
+* **CDN (Amazon CloudFront):** Acts as the global entry point, serving content via HTTPS to minimize latency.
+* **Origin Security:** Implemented **Origin Access Control (OAC)**. The S3 bucket policy is restricted to CloudFront service principals only, ensuring the origin is invisible to the public internet.
 
-### Backend Services (Python/Boto3)
-* **API Layer:** Amazon API Gateway (HTTP API). Handles CORS headers to permit cross-domain requests from the CloudFront distribution.
-* **Database:** Amazon DynamoDB. Stores visitor telemetry using an atomic counter to ensure data integrity during concurrent hits.
-* **Compute:** * `visitor-counter-function.py`: Increments and retrieves site view counts.
-    * `contact-form-functio.py`: Parses JSON payloads and triggers email delivery via Amazon SES.
-* **Communication:** Amazon SES (Simple Email Service) configured with verified identity for secure form routing.
+### Serverless Backend (Python & Boto3)
+* **API Layer:** Amazon API Gateway (HTTP API). Configured with custom **CORS** policies to securely bridge the frontend domain with backend resources.
+* **Compute (AWS Lambda):**
+    * `visitor-counter-function.py`: Manages site telemetry.
+    * `contact-form-function.py`: Parses JSON payloads and routes messages to SES.
+* **Persistence (Amazon DynamoDB):** A NoSQL table using **Atomic Increments** to ensure accurate visitor tracking during concurrent requests.
+* **Communications:** Amazon SES (Simple Email Service) configured with a verified identity to handle automated outbound routing.
 
-## Security & Operations
-* **IAM Policy:** Followed the principle of least privilege for Lambda execution roles, scoping permissions to specific Resource ARNs (DynamoDB table and SES identity).
-* **Cost Management:** Established AWS Budget alerts at a $0.01 threshold to monitor resource consumption in real-time.
-* **Caching:** Configured manual CloudFront invalidations (/*) to manage content updates across edge locations.
+### Security & Operational Excellence
+* **IAM Governance:** Applied the **Principle of Least Privilege**. Lambda execution roles are strictly scoped to the ARNs of the DynamoDB table and SES identity.
+* **Cost Optimization:** Established **AWS Budget** alerts at a **$0.01 threshold** to demonstrate fiscal responsibility and prevent "surprise" costs.
+* **Edge Caching:** Managed the content lifecycle using manual CloudFront invalidations (`/*`) to ensure global updates are reflected immediately.
 
-## Technical Notes & Troubleshooting
-* **CORS Management:** Managed Access-Control-Allow-Origin and Access-Control-Allow-Methods (OPTIONS, POST) within API Gateway to resolve browser-side blocking issues during the integration phase.
-* **Event Parsing:** Configured Lambda handlers to properly decode event['body'] strings sent from the frontend fetch() API.
+### Technical Challenges & Troubleshooting
+* **CORS Resolution:** Handled `Access-Control-Allow-Origin` and pre-flight `OPTIONS` requests within API Gateway to resolve browser-side blocking.
+* **Payload Decoding:** Resolved integration issues by implementing robust event body parsing in Lambda to decode stringified JSON objects sent via the JavaScript `fetch()` API.
