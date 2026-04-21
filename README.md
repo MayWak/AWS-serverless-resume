@@ -3,10 +3,9 @@
 **Live Link:** [View my Live Resume](https://dzcey4h6erix0.cloudfront.net)
 
 ## Project Overview
-This repository contains the infrastructure and code for a serverless portfolio website. The project transitions a traditional static site into a global, event-driven application with real-time visitor tracking and an integrated contact system.
+This repository houses the architecture and source code for a production-ready, serverless cloud resume. The objective was to move beyond basic static hosting by building a secure, event-driven system that handles dynamic visitor telemetry and automated contact routing. By leveraging a fully serverless stack, the site achieves high availability and global performance while maintaining a near-zero cost footprint.
 
 ## System Architecture
-
 <img width="1540" height="1230" alt="System Architectue" src="https://github.com/user-attachments/assets/302a35dc-f106-4d65-963a-fdf12e1a32d3" />
 
 ## Architecture & Technical Implementation
